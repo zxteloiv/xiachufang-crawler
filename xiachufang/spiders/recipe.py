@@ -67,9 +67,9 @@ class RecipeSpider(scrapy.Spider):
         if tips_xpath:
             item.tips = "\n".join(x.strip() for x in response.xpath(tips_xpath).extract())
 
-        items.url = response.url
-        items.crawl_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        items.recipe_id = re.search('(\d+)', response.url).groups(0)[0]
+        item.url = response.url
+        item.crawl_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        item.recipe_id = re.search('(\d+)', response.url).groups(0)[0]
 
+        return item
 
-        pass
