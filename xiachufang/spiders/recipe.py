@@ -11,6 +11,7 @@ class RecipeSpider(scrapy.Spider):
     allowed_domains = ["xiachufang.com"]
     start_urls = (
         'http://www.xiachufang.com/category/',
+        'http://www.xiachufang.com/recipe/100387998/',
     )
 
     def parse(self, response):
@@ -45,18 +46,19 @@ class RecipeSpider(scrapy.Spider):
 
         # description for this recipe
         desc_xpath = '//*[@itemprop="description"]/text()'
-        item["desc"] = "\n".join(x.strip() for x in response.xpath(desc_xpath).extract())
+        item["desc"] = filter(lambda x: len(x) > 0,
+                (x.strip() for x in response.xpath(desc_xpath).extract()))
 
         # ingredients in this recipe
-        for sel in response.xpath('//*[@itemprop="ingredients"]'):
-            # ingredient name may be here or inside an <a>
-            name_sel = sel.xpath('*[contains(@class,"name")]')
-            unit_sel = sel.xpath('*[contains(@class,"unit")]')
-            
-            item["ingredients"] = dict(izip(
-                (re.sub('<[^>]*>', '', x).strip() for x in name_sel.extract()),
-                (re.sub('<[^>]*>', '', x).strip() for x in unit_sel.extract()),
-                ))
+        ingredients_sel = response.xpath('//*[@itemprop="ingredients"]')
+        # ingredient name may be here or inside an <a>
+        name_sel = ingredients_sel.xpath('*[contains(@class,"name")]')
+        unit_sel = ingredients_sel.xpath('*[contains(@class,"unit")]')
+        
+        item["ingredients"] = dict(izip(
+            (re.sub('<[^>]*>', '', x).strip() for x in name_sel.extract()),
+            (re.sub('<[^>]*>', '', x).strip() for x in unit_sel.extract()),
+            ))
 
         # steps to cook
         step_xpath = '//div[@class="steps"]/descendant::p[@class="text"]/text()'
@@ -65,7 +67,8 @@ class RecipeSpider(scrapy.Spider):
         # tips content
         tips_xpath = '//div[@class="tip"]/text()'
         if tips_xpath:
-            item["tips"] = "\n".join(x.strip() for x in response.xpath(tips_xpath).extract())
+            item["tips"] = filter(lambda x: len(x) > 0,
+                    (x.strip() for x in response.xpath(tips_xpath).extract()))
 
         item["url"] = response.url
         item["crawl_date"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
