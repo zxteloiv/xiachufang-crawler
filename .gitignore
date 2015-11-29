@@ -38,3 +38,4 @@ nosetests.xml
 
 .idea
 *.swp
+items.json
