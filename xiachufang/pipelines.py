@@ -8,8 +8,14 @@
 import json
 
 class RecipePipeline(object):
-    def __init__(self):
-        self.file = open('items.json', 'wb')
+    def __init__(self, name):
+        self.file = open(name, 'wb')
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            name=crawler.settings.get('PIPELINE_SAVE_FILENAME', default='items.json')
+        )
 
     def process_item(self, item, spider):
         line = json.dumps(dict(item)) + "\n"
